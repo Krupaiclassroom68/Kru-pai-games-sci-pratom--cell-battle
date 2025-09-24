@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Science Battle — Cell Edition (30 ข้อ)</title>
+<style>
+  :root{
+    --bg:#fffaf5;
+    --card:#ffffff;
+    --ink:#111827;
+    --muted:#6b7280;
+    --brand:#f97316;   /* ส้ม */
+    --accent:#fb923c;  /* ส้มอ่อน */
+    --ok:#16a34a;
+    --bad:#ef4444;
+    --shadow:0 10px 30px rgba(0,0,0,.08);
+    --radius:22px;
+  }
+  body{margin:0;background:linear-gradient(180deg,var(--bg),#fff);color:var(--ink);font-family:Prompt,Inter,system-ui}
+  .wrap{max-width:900px;margin:0 auto;padding:24px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px}
+  .badge{font-size:14px;color:#fff;background:var(--brand);padding:6px 12px;border-radius:999px}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+  .center{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+  .title{font-size:clamp(32px,5vw,48px);font-weight:900}
+  .subtitle{color:var(--muted);font-size:20px}
+  button{border:0;border-radius:16px;padding:16px 22px;font-weight:800;cursor:pointer;box-shadow:var(--shadow);font-size:20px}
+  .btn-primary{background:var(--brand);color:#fff}
+  .btn-ghost{background:#fff;color:var(--brand);border:2px solid var(--brand)}
+  .hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:20px}
+  .pill{background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;padding:8px 14px;border-radius:999px;font-weight:800;font-size:18px}
+  .clock{position:relative;width:64px;height:64px}
+  .clock svg{transform:rotate(-90deg)}
+  .clock .ring{stroke:#ffe4d6;stroke-width:8;fill:none}
+  .clock .bar{stroke:var(--accent);stroke-width:8;stroke-linecap:round;fill:none}
+  .clock .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--accent);font-size:20px}
+  .q{font-size:26px;font-weight:900;margin:10px 0;text-align:center}
+  .options{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .opt{border:3px solid #fed7aa;border-radius:18px;padding:20px;font-weight:900;cursor:pointer;font-size:22px}
+  .opt.correct{border-color:var(--ok);background:#ecfdf5}
+  .opt.wrong{border-color:var(--bad);background:#fef2f2}
+  .fb{margin-top:6px;font-size:18px;font-weight:900}
+  .ok{color:var(--ok)}
+  .bad{color:var(--bad)}
+  .big-score{font-size:44px;font-weight:900}
+  .trophy{font-size:50px}
+  .stat{display:flex;gap:12px;justify-content:center;font-size:20px}
+  .wm{position:fixed;bottom:12px;right:12px;background:#c2410c;color:#fff;padding:6px 12px;border-radius:999px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo">⚔️🧪 <span>Kru Pai Classroom</span></div>
+  <span class="badge">Science Battle — Cell Edition</span>
+</header>
+<section id="screen-start" class="card center">
+  <div class="title" style="color:var(--brand)">Cell Battle ⚡</div>
+  <div class="subtitle">องค์ประกอบ • หน้าที่ • พืช vs สัตว์ • ไมโทซิส • ไมโอซิส</div>
+  <input id="player" type="text" placeholder="ใส่ชื่อเล่น" style="padding:14px;font-size:20px;border:2px solid #fed7aa;border-radius:12px"/>
+  <button class="btn-primary" onclick="startGame()">เริ่มต่อสู้</button>
+</section>
+<section id="screen-game" class="card" style="display:none">
+  <div class="hud">
+    <span id="progress" class="pill">ข้อ 1/30</span>
+    <span id="scorePill" class="pill">คะแนน 0</span>
+    <div class="clock">
+      <svg width="64" height="64"><circle class="ring" cx="32" cy="32" r="27" /><circle id="bar" class="bar" cx="32" cy="32" r="27" stroke-dasharray="169.6" stroke-dashoffset="0"/></svg>
+      <div id="num" class="num">5</div>
+    </div>
+  </div>
+  <div id="question" class="q"></div>
+  <div class="options">
+    <button id="optA" class="opt" onclick="choose('A')"></button>
+    <button id="optB" class="opt" onclick="choose('B')"></button>
+  </div>
+</section>
+<section id="screen-end" class="card center" style="display:none">
+  <div class="title" style="color:var(--brand)">สรุปผล</div>
+  <div id="finalName" class="subtitle"></div>
+  <div id="finalScore" class="big-score"></div>
+  <div id="finalMedal" class="trophy"></div>
+  <div class="stat">
+    <span id="statPercent" class="pill"></span>
+    <span id="statRemark" class="pill"></span>
+  </div>
+  <button class="btn-ghost" onclick="toStart()">กลับหน้าแรก</button>
+</section>
+</div>
+<div class="wm">Kru Pai Classroom</div>
+<script>
+// ===== คำถาม Cell Edition (30 ข้อ) =====
+const CELL=[
+ {q:"ออร์แกเนลล์สร้างพลังงานหลักของเซลล์",A:"ไมโทคอนเดรีย",B:"นิวเคลียส",correct:"A"},
+ {q:"ออร์แกเนลล์เฉพาะพืชใช้สังเคราะห์แสง",A:"คลอโรพลาสต์",B:"ไมโทคอนเดรีย",correct:"A"},
+ {q:"โครงสร้างเก็บน้ำในเซลล์พืช",A:"แวคิวโอล",B:"เซนทริโอล",correct:"A"},
+ {q:"ผนังเซลล์พืชประกอบด้วย",A:"เซลลูโลส",B:"ไคติน",correct:"A"},
+ {q:"เซลล์สัตว์ไม่มีออร์แกเนลล์ใด",A:"คลอโรพลาสต์",B:"ไมโทคอนเดรีย",correct:"A"},
+ {q:"ออร์แกเนลล์ย่อยอาหารในเซลล์สัตว์",A:"ไลโซโซม",B:"ไรโบโซม",correct:"A"},
+ {q:"แหล่งสร้างโปรตีนของเซลล์",A:"ไรโบโซม",B:"กอลจิ บอดี",correct:"A"},
+ {q:"โครงสร้างควบคุมการเข้าออกสารในเซลล์",A:"เยื่อหุ้มเซลล์",B:"ผนังเซลล์",correct:"A"},
+ {q:"การแบ่งเซลล์เพื่อเจริญเติบโต",A:"ไมโทซิส",B:"ไมโอซิส",correct:"A"},
+ {q:"การแบ่งเซลล์เพื่อลูกสืบพันธุ์",A:"ไมโอซิส",B:"ไมโทซิส",correct:"A"},
+ {q:"ไมโทซิสได้เซลล์ลูกกี่เซลล์",A:"2",B:"4",correct:"A"},
+ {q:"ไมโอซิสได้เซลล์ลูกกี่เซลล์",A:"4",B:"2",correct:"A"},
+ {q:"DNA อยู่ที่ใดในเซลล์ยูคาริโอต",A:"นิวเคลียส",B:"ไซโทพลาสซึม",correct:"A"},
+ {q:"ออร์แกเนลล์พบเฉพาะในพืช",A:"ผนังเซลล์",B:"ไลโซโซม",correct:"A"},
+ {q:"ออร์แกเนลล์พบเฉพาะในสัตว์",A:"เซนทริโอล",B:"คลอโรพลาสต์",correct:"A"},
+ {q:"ไมโทซิสระยะโครโมโซมเรียงกึ่งกลาง",A:"เมตาเฟส",B:"โพรเฟส",correct:"A"},
+ {q:"ไมโทซิสระยะโครโมโซมแยกออก",A:"แอนาเฟส",B:"เทโลเฟส",correct:"A"},
+ {q:"ไมโอซิสมีการแบ่งนิวเคลียสกี่ครั้ง",A:"2",B:"1",correct:"A"},
+ {q:"เซลล์ที่มีนิวเคลียสแท้จริง",A:"ยูคาริโอต",B:"โปรคาริโอต",correct:"A"},
+ {q:"โครงสร้างให้รูปทรงภายในเซลล์",A:"ไซโทสเกเลตอน",B:"กอลจิ",correct:"A"},
+ {q:"ส่วนสร้าง rRNA ในเซลล์",A:"นิวคลีโอลัส",B:"นิวเคลียส",correct:"A"},
+ {q:"ความต่างพืชและสัตว์",A:"คลอโรพลาสต์/ผนังเซลล์",B:"ไมโทคอนเดรีย",correct:"A"},
+ {q:"การหายใจระดับเซลล์เกิดหลักที่",A:"ไมโทคอนเดรีย",B:"นิวเคลียส",correct:"A"},
+ {q:"ไมโอซิสช่วยเพิ่ม",A:"ความหลากหลายทางพันธุกรรม",B:"จำนวนโครโมโซม",correct:"A"},
+ {q:"เยื่อหุ้มเซลล์ทำจาก",A:"ลิพิดและโปรตีน",B:"คาร์โบไฮเดรตล้วน",correct:"A"},
+ {q:"ไมโทซิสและไมโอซิสต่างกัน",A:"จำนวนเซลล์ลูก",B:"การมี DNA",correct:"A"},
+ {q:"ออร์แกเนลล์จัดส่งโปรตีน",A:"กอลจิ บอดี",B:"ไรโบโซม",correct:"A"},
+ {q:"น้ำตาลหลักเลี้ยงเซลล์",A:"กลูโคส",B:"ซูโครส",correct:"A"},
+ {q:"ไซโทพลาสซึมทำหน้าที่",A:"เป็นที่เกิดปฏิกิริยาเคมี",B:"เก็บ DNA",correct:"A"},
+ {q:"เซลล์สืบพันธุ์มีโครโมโซม",A:"ครึ่งหนึ่งของเซลล์ร่างกาย",B:"เท่ากับเซลล์ร่างกาย",correct:"A"}
+];
+
+let idx=0,score=0,timeLeft=5,intervalId=null;const TOTAL=CELL.length;
+const qEl=document.getElementById('question'),optA=document.getElementById('optA'),optB=document.getElementById('optB'),progress=document.getElementById('progress'),scorePill=document.getElementById('scorePill'),numEl=document.getElementById('num'),barEl=document.getElementById('bar');
+const elStart=document.getElementById('screen-start'),elGame=document.getElementById('screen-game'),elEnd=document.getElementById('screen-end');
+const CIRC=2*Math.PI*27;barEl.setAttribute('stroke-dasharray',CIRC.toFixed(1));
+function toStart(){clearInterval(intervalId);elEnd.style.display='none';elGame.style.display='none';elStart.style.display='flex'}
+function startGame(){idx=0;score=0;elStart.style.display='none';elEnd.style.display='none';elGame.style.display='block';loadQ()}
+function loadQ(){clearInterval(intervalId);timeLeft=5;updateClock(1);const item=CELL[idx];progress.textContent=`ข้อ ${idx+1}/${TOTAL}`;scorePill.textContent=`คะแนน ${score}`;qEl.textContent=item.q;const opts=[{id:'A',text:item.A},{id:'B',text:item.B}];if(Math.random()<0.5)opts.reverse();optA.className='opt';optB.className='opt';optA.innerHTML=`🅰️ ${opts[0].text}`;optB.innerHTML=`🅱️ ${opts[1].text}`;optA.dataset.correct=(opts[0].id===item.correct);optB.dataset.correct=(opts[1].id===item.correct);intervalId=setInterval(()=>{timeLeft-=0.1;if(timeLeft<=0){clearInterval(intervalId);ans(null,true);}else{updateClock(timeLeft/5);numEl.textContent=String(Math.ceil(timeLeft));}},100)}
+function updateClock(pct){const offset=(1-pct)*CIRC;barEl.setAttribute('stroke-dashoffset',offset.toFixed(1));numEl.textContent=String(Math.ceil(timeLeft))}
+function choose(l){ans(l,false)}
+function ans(l,t){clearInterval(intervalId);if(t){setTimeout(next,800);return}let chosen=(l==='A')?optA:optB;let other=(l==='A')?optB:optA;if(chosen.dataset.correct==='true'){chosen.classList.add('correct');score++;}else{chosen.classList.add('wrong');other.classList.add('correct');}scorePill.textContent=`คะแนน ${score}`;setTimeout(next,800)}
+function next(){idx++;if(idx>=TOTAL)finish();else loadQ()}
+function finish(){elGame.style.display='none';elEnd.style.display='flex';const name=(document.getElementById('player').value||'').trim();document.getElementById('finalName').textContent=name?`เยี่ยมมาก, ${name}!`:'เยี่ยมมาก!';document.getElementById('finalScore').textContent=`${score}/${TOTAL}`;const percent=Math.round((score/TOTAL)*100);document.getElementById('statPercent').textContent=`${percent}%`;const m=document.getElementById('finalMedal'),r=document.getElementById('statRemark');if(percent===100){m.textContent='🥇';r.textContent='Perfect!'}else if(percent>=90){m.textContent='🥈';r.textContent='ยอดเยี่ยม'}else if(percent>=80){m.textContent='🥉';r.textContent='ดีมาก'}else{m.textContent='';r.textContent='สู้ต่อ'} }
+</script>
+</body>
+</html>
